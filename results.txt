@@ -1,7 +1,235 @@
-Last checked: not yet run
+Senegal La Poste
+International Letter Rates
+================================
 
-Senegal La Poste — International Letter Rates
+Last checked: 2026-08-14 06:03:07 UTC
 Service: Courrier (0 - 3kg)
 Weight: 10 grams
+Weight tranche: 1
 
-The GitHub Actions monitor has not run yet.
+AVAILABLE SERVICES
+==================
+
+SENEGAL | 200 FCFA | 24-48h
+BENIN | 300 FCFA | 5-10 jours ouvrés
+BURKINA FASO | 300 FCFA | 5-10 jours ouvrés
+CAP-VERT | 300 FCFA | 5-10 jours ouvrés
+COTE D'IVOIRE | 300 FCFA | 5-10 jours ouvrés
+GHANA | 300 FCFA | 5-10 jours ouvrés
+GUINEE | 300 FCFA | 5-10 jours ouvrés
+GUINEE-BISSAU | 300 FCFA | 5-10 jours ouvrés
+LIBERIA | 300 FCFA | 5-10 jours ouvrés
+MALI | 300 FCFA | 5-10 jours ouvrés
+MAURITANIE | 300 FCFA | 5-10 jours ouvrés
+NIGER | 300 FCFA | 5-10 jours ouvrés
+NIGERIA | 300 FCFA | 5-10 jours ouvrés
+SIERRA-LEONE | 300 FCFA | 5-10 jours ouvrés
+TOGO | 300 FCFA | 5-10 jours ouvrés
+ALGERIE | 450 FCFA | 5-10 jours ouvrés
+BURUNDI | 450 FCFA | 5-10 jours ouvrés
+CAMEROUN | 450 FCFA | 5-10 jours ouvrés
+CENTRAFRIQUE | 450 FCFA | 5-10 jours ouvrés
+CONGO | 450 FCFA | 5-10 jours ouvrés
+EGYPTE | 450 FCFA | 5-10 jours ouvrés
+FRANCE | 450 FCFA | 5-10 jours ouvrés
+GABON | 450 FCFA | 5-10 jours ouvrés
+GUINEE EQUATORIALE | 450 FCFA | 5-10 jours ouvrés
+LIBYE | 450 FCFA | 5-10 jours ouvrés
+MAROC | 450 FCFA | 5-10 jours ouvrés
+RWANDA | 450 FCFA | 5-10 jours ouvrés
+SAO TOME | 450 FCFA | 5-10 jours ouvrés
+TCHAD | 450 FCFA | 5-10 jours ouvrés
+TUNISIE | 450 FCFA | 5-10 jours ouvrés
+ZAIRE | 450 FCFA | 5-10 jours ouvrés
+AFRIQUE DU SUD | 500 FCFA | 5-10 jours ouvrés
+ALBANIE | 500 FCFA | 5-10 jours ouvrés
+ALLEMAGNE | 500 FCFA | 5-10 jours ouvrés
+ANGOLA | 500 FCFA | 5-10 jours ouvrés
+ARABIE SAOUDITE | 500 FCFA | 5-10 jours ouvrés
+AUTRICHE | 500 FCFA | 5-10 jours ouvrés
+BAHREIN | 500 FCFA | 5-10 jours ouvrés
+BELGIQUE | 500 FCFA | 5-10 jours ouvrés
+BOSNIE HERZEGOVINE | 500 FCFA | 5-10 jours ouvrés
+BOTSWANA | 500 FCFA | 5-10 jours ouvrés
+BULGARIE | 500 FCFA | 5-10 jours ouvrés
+CHYPRE | 500 FCFA | 5-10 jours ouvrés
+COMORES | 500 FCFA | 5-10 jours ouvrés
+CROATIE | 500 FCFA | 5-10 jours ouvrés
+DANEMARK | 500 FCFA | 5-10 jours ouvrés
+DJIBOUTI | 500 FCFA | 5-10 jours ouvrés
+EMIRATS ARABES | 500 FCFA | 5-10 jours ouvrés
+ERYTHREE | 500 FCFA | 5-10 jours ouvrés
+ESPAGNE | 500 FCFA | 5-10 jours ouvrés
+ESTONIE | 500 FCFA | 5-10 jours ouvrés
+ETHIOPIE | 500 FCFA | 5-10 jours ouvrés
+FINLANDE | 500 FCFA | 5-10 jours ouvrés
+GIBRALTAR | 500 FCFA | 5-10 jours ouvrés
+GRANDE BRETAGNE | 500 FCFA | 5-10 jours ouvrés
+GRECE | 500 FCFA | 5-10 jours ouvrés
+GUERNESEY | 500 FCFA | 5-10 jours ouvrés
+HONGRIE | 500 FCFA | 5-10 jours ouvrés
+IRLANDE | 500 FCFA | 5-10 jours ouvrés
+ISRAEL | 500 FCFA | 5-10 jours ouvrés
+ITALIE | 500 FCFA | 5-10 jours ouvrés
+JERSEY | 500 FCFA | 5-10 jours ouvrés
+JORDANIE | 500 FCFA | 5-10 jours ouvrés
+KENYA | 500 FCFA | 5-10 jours ouvrés
+KOWEIT | 500 FCFA | 5-10 jours ouvrés
+LESOTHO | 500 FCFA | 5-10 jours ouvrés
+LETTONIE | 500 FCFA | 5-10 jours ouvrés
+LIBAN | 500 FCFA | 5-10 jours ouvrés
+LIECHTENSTEIN | 500 FCFA | 5-10 jours ouvrés
+LITUANIE | 500 FCFA | 5-10 jours ouvrés
+LUXEMBOURG | 500 FCFA | 5-10 jours ouvrés
+MACEDOINE | 500 FCFA | 5-10 jours ouvrés
+MADAGASCAR | 500 FCFA | 5-10 jours ouvrés
+MALAWI | 500 FCFA | 5-10 jours ouvrés
+MALDIVES | 500 FCFA | 5-10 jours ouvrés
+MALTE | 500 FCFA | 5-10 jours ouvrés
+MAURICE | 500 FCFA | 5-10 jours ouvrés
+MAYOTTE | 500 FCFA | 5-10 jours ouvrés
+MOLDAVIE | 500 FCFA | 5-10 jours ouvrés
+MOZAMBIQUE | 500 FCFA | 5-10 jours ouvrés
+NAMIBIE | 500 FCFA | 5-10 jours ouvrés
+NORVEGE | 500 FCFA | 5-10 jours ouvrés
+OMAN | 500 FCFA | 5-10 jours ouvrés
+OUGANDA | 500 FCFA | 5-10 jours ouvrés
+PAYS BAS | 500 FCFA | 5-10 jours ouvrés
+POLOGNE | 500 FCFA | 5-10 jours ouvrés
+PORTUGAL | 500 FCFA | 5-10 jours ouvrés
+QATAR | 500 FCFA | 5-10 jours ouvrés
+REPUBLIQUE TCHEQUE | 500 FCFA | 5-10 jours ouvrés
+REUNION | 500 FCFA | 5-10 jours ouvrés
+ROUMANIE | 500 FCFA | 5-10 jours ouvrés
+RUSSIE | 500 FCFA | 5-10 jours ouvrés
+SEYCHELLES | 500 FCFA | 5-10 jours ouvrés
+SLOVAQUIE | 500 FCFA | 5-10 jours ouvrés
+SLOVENIE | 500 FCFA | 5-10 jours ouvrés
+SOMALIE | 500 FCFA | 5-10 jours ouvrés
+SOUDAN | 500 FCFA | 5-10 jours ouvrés
+SUEDE | 500 FCFA | 5-10 jours ouvrés
+SUISSE | 500 FCFA | 5-10 jours ouvrés
+SWAZILAND | 500 FCFA | 5-10 jours ouvrés
+SYRIE | 500 FCFA | 5-10 jours ouvrés
+TANZANIE | 500 FCFA | 5-10 jours ouvrés
+TURQUIE | 500 FCFA | 5-10 jours ouvrés
+UKRAINE | 500 FCFA | 5-10 jours ouvrés
+VATICAN | 500 FCFA | 5-10 jours ouvrés
+ZAMBIE | 500 FCFA | 5-10 jours ouvrés
+ZIMBABWE | 500 FCFA | 5-10 jours ouvrés
+ANGUILLA | 550 FCFA | 5-10 jours ouvrés
+ANTIGUA | 550 FCFA | 5-10 jours ouvrés
+ANTILLES | 550 FCFA | 5-10 jours ouvrés
+ARGENTINE | 550 FCFA | 5-10 jours ouvrés
+BAHAMAS | 550 FCFA | 5-10 jours ouvrés
+BARBADE | 550 FCFA | 5-10 jours ouvrés
+BELIZE | 550 FCFA | 5-10 jours ouvrés
+BERMUDES | 550 FCFA | 5-10 jours ouvrés
+BOLIVIE | 550 FCFA | 5-10 jours ouvrés
+BRESIL | 550 FCFA | 5-10 jours ouvrés
+CANADA | 550 FCFA | 5-10 jours ouvrés
+CAYMAN | 550 FCFA | 5-10 jours ouvrés
+CHILI | 550 FCFA | 5-10 jours ouvrés
+COLOMBIE | 550 FCFA | 5-10 jours ouvrés
+COSTA RICA | 550 FCFA | 5-10 jours ouvrés
+CUBA | 550 FCFA | 5-10 jours ouvrés
+DOMINIQUE | 550 FCFA | 5-10 jours ouvrés
+EQUATEUR | 550 FCFA | 5-10 jours ouvrés
+ETATS-UNIS | 550 FCFA | 5-10 jours ouvrés
+FALKLAND | 550 FCFA | 5-10 jours ouvrés
+GRENADE | 550 FCFA | 5-10 jours ouvrés
+GUADELOUPE | 550 FCFA | 5-10 jours ouvrés
+GUATEMALA | 550 FCFA | 5-10 jours ouvrés
+GUYANA | 550 FCFA | 5-10 jours ouvrés
+GUYANE FRANÇAISE | 550 FCFA | 5-10 jours ouvrés
+HAITI | 550 FCFA | 5-10 jours ouvrés
+HONDURAS | 550 FCFA | 5-10 jours ouvrés
+JAMAIQUE | 550 FCFA | 5-10 jours ouvrés
+MARTINIQUE | 550 FCFA | 5-10 jours ouvrés
+MEXIQUE | 550 FCFA | 5-10 jours ouvrés
+MONTSERRAT | 550 FCFA | 5-10 jours ouvrés
+NICARAGUA | 550 FCFA | 5-10 jours ouvrés
+PANAMA | 550 FCFA | 5-10 jours ouvrés
+PORTO RICO | 550 FCFA | 5-10 jours ouvrés
+REPUBLIQUE DOMINICAINE | 550 FCFA | 5-10 jours ouvrés
+SAINT CHRISTOPHE | 550 FCFA | 5-10 jours ouvrés
+SAINT MARTIN | 550 FCFA | 5-10 jours ouvrés
+SAINT PIERRE ET MIQUELON | 550 FCFA | 5-10 jours ouvrés
+SAINT VINCENT | 550 FCFA | 5-10 jours ouvrés
+SAINTE LUCIE | 550 FCFA | 5-10 jours ouvrés
+SALVADOR | 550 FCFA | 5-10 jours ouvrés
+SURINAM | 550 FCFA | 5-10 jours ouvrés
+TRINITE | 550 FCFA | 5-10 jours ouvrés
+URUGUAY | 550 FCFA | 5-10 jours ouvrés
+VENEZUELA | 550 FCFA | 5-10 jours ouvrés
+AFGHANISTAN | 650 FCFA | 5-10 jours ouvrés
+ARMENIE | 650 FCFA | 5-10 jours ouvrés
+AUSTRALIE | 650 FCFA | 5-10 jours ouvrés
+AZERBAIDJAN | 650 FCFA | 5-10 jours ouvrés
+BANGLADESH | 650 FCFA | 5-10 jours ouvrés
+BELARUS | 650 FCFA | 5-10 jours ouvrés
+BHOUTAN | 650 FCFA | 5-10 jours ouvrés
+BRUNEI | 650 FCFA | 5-10 jours ouvrés
+CHINE | 650 FCFA | 5-10 jours ouvrés
+COREE | 650 FCFA | 5-10 jours ouvrés
+FIDJI | 650 FCFA | 5-10 jours ouvrés
+GEORGIE | 650 FCFA | 5-10 jours ouvrés
+GUAM | 650 FCFA | 5-10 jours ouvrés
+HONG KONG | 650 FCFA | 5-10 jours ouvrés
+INDE | 650 FCFA | 5-10 jours ouvrés
+INDONESIE | 650 FCFA | 5-10 jours ouvrés
+IRAK | 650 FCFA | 5-10 jours ouvrés
+IRAN | 650 FCFA | 5-10 jours ouvrés
+JAPON | 650 FCFA | 5-10 jours ouvrés
+KAMPUCHEA | 650 FCFA | 5-10 jours ouvrés
+KAZAKHSTAN | 650 FCFA | 5-10 jours ouvrés
+KIRGHIZISTAN | 650 FCFA | 5-10 jours ouvrés
+KIRIBATI | 650 FCFA | 5-10 jours ouvrés
+LAOS | 650 FCFA | 5-10 jours ouvrés
+MACAO | 650 FCFA | 5-10 jours ouvrés
+MALAISIE | 650 FCFA | 5-10 jours ouvrés
+MARSHALL | 650 FCFA | 5-10 jours ouvrés
+MICRONESIE | 650 FCFA | 5-10 jours ouvrés
+MONGOLIE | 650 FCFA | 5-10 jours ouvrés
+MYANMAR | 650 FCFA | 5-10 jours ouvrés
+NAURU | 650 FCFA | 5-10 jours ouvrés
+NEPALT | 650 FCFA | 5-10 jours ouvrés
+NOUVELLE CALEDONIE | 650 FCFA | 5-10 jours ouvrés
+NOUVELLE ZELANDE | 650 FCFA | 5-10 jours ouvrés
+OUZBEKISTAN | 650 FCFA | 5-10 jours ouvrés
+PAKISTAN | 650 FCFA | 5-10 jours ouvrés
+PAPOUASIE | 650 FCFA | 5-10 jours ouvrés
+PHILIPPINES | 650 FCFA | 5-10 jours ouvrés
+POLYNESIE FRANÇAISE | 650 FCFA | 5-10 jours ouvrés
+SALOMON | 650 FCFA | 5-10 jours ouvrés
+SAMOA | 650 FCFA | 5-10 jours ouvrés
+SINGAPOUR | 650 FCFA | 5-10 jours ouvrés
+TADJIKISTAN | 650 FCFA | 5-10 jours ouvrés
+TAIWAN | 650 FCFA | 5-10 jours ouvrés
+THAÏLANDE | 650 FCFA | 5-10 jours ouvrés
+TONGA | 650 FCFA | 5-10 jours ouvrés
+TURKMENISTAN | 650 FCFA | 5-10 jours ouvrés
+TUVALU | 650 FCFA | 5-10 jours ouvrés
+VANUATU | 650 FCFA | 5-10 jours ouvrés
+VIETNAM | 650 FCFA | 5-10 jours ouvrés
+WALLIS ET FUTUNA | 650 FCFA | 5-10 jours ouvrés
+YEMEN | 650 FCFA | 5-10 jours ouvrés
+
+UNAVAILABLE / NULL TARIFF
+=========================
+
+None
+
+ZERO TARIFF
+===========
+
+None
+
+SUMMARY
+=======
+
+Countries checked: 204
+Available: 204
+Null / unavailable: 0
+Zero tariff: 0
+Errors: 0
