@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import re
 import sys
 import unicodedata
@@ -13,12 +12,12 @@ URL = "https://www.laposte.sn/envoi-colis-lettres-international/"
 OUTPUT_FILE = Path("results.txt")
 
 WEIGHT_GRAMS = 10
-USER_AGENT = (
-    "Mozilla/5.0 (compatible; SenegalPostMonitor/1.0; "
-    "+https://github.com/)"
-)
 
 REQUEST_TIMEOUT = 40
+
+USER_AGENT = (
+    "Mozilla/5.0 (compatible; SenegalPostMonitor/1.0)"
+)
 
 
 def log(message: str) -> None:
@@ -35,6 +34,7 @@ def normalized_key(value: str) -> str:
     value = normalize_text(value)
 
     value = unicodedata.normalize("NFD", value)
+
     value = "".join(
         c for c in value
         if unicodedata.category(c) != "Mn"
@@ -50,7 +50,10 @@ def download_page() -> str:
         URL,
         headers={
             "User-Agent": USER_AGENT,
-            "Accept": "text/html,application/xhtml+xml",
+            "Accept": (
+                "text/html,application/xhtml+xml,"
+                "application/xml;q=0.9,*/*;q=0.8"
+            ),
             "Accept-Language": "fr-FR,fr;q=0.9,en;q=0.8",
         },
     )
@@ -59,10 +62,12 @@ def download_page() -> str:
         request,
         timeout=REQUEST_TIMEOUT,
     ) as response:
-        content = response.read()
+        data = response.read()
 
-    # The page is UTF-8.
-    html = content.decode("utf-8", errors="replace")
+    html = data.decode(
+        "utf-8",
+        errors="replace",
+    )
 
     log(f"Downloaded {len(html):,} bytes")
 
@@ -72,29 +77,24 @@ def download_page() -> str:
 def extract_js_object(
     html: str,
     variable_name: str,
-) -> dict:
+) -> str:
     """
-    Extract a JavaScript object assigned like:
+    Extract the complete JavaScript object assigned to a
+    variable such as:
 
         const PRICING_COURRIER = {
-            'nat': { 1: 200, 2: 200, 3: 425 },
-            'z1':  { 1: 300, 2: 400, 3: 700 },
             ...
         };
 
-    This is JavaScript object syntax, not strict JSON.
+    Returns the raw JavaScript object text.
 
-    The current Senegal La Poste page uses:
-      - quoted string keys
-      - unquoted numeric keys
-      - null values
-
-    We convert the numeric keys into JSON-compatible quoted keys
-    before parsing.
+    It deliberately does NOT attempt to parse it as JSON.
     """
 
     pattern = re.compile(
-        rf"\bconst\s+{re.escape(variable_name)}\s*=\s*\{{",
+        rf"\b(?:const|let|var)\s+"
+        rf"{re.escape(variable_name)}"
+        rf"\s*=\s*\{{",
         re.MULTILINE,
     )
 
@@ -102,19 +102,21 @@ def extract_js_object(
 
     if not match:
         raise RuntimeError(
-            f"Could not find JavaScript object "
-            f"{variable_name!r} on the page."
+            f"Could not find {variable_name} "
+            "in the downloaded page."
         )
 
     start = match.end() - 1
 
     depth = 0
     in_string = False
-    string_quote = None
+    quote = None
     escaped = False
-    end = None
 
-    for position in range(start, len(html)):
+    for position in range(
+        start,
+        len(html),
+    ):
         char = html[position]
 
         if in_string:
@@ -126,15 +128,15 @@ def extract_js_object(
                 escaped = True
                 continue
 
-            if char == string_quote:
+            if char == quote:
                 in_string = False
-                string_quote = None
+                quote = None
 
             continue
 
-        if char in ("'", '"'):
+        if char in ("'", '"', "`"):
             in_string = True
-            string_quote = char
+            quote = char
             continue
 
         if char == "{":
@@ -145,122 +147,232 @@ def extract_js_object(
 
             if depth == 0:
                 end = position + 1
-                break
 
-    if end is None:
-        raise RuntimeError(
-            f"Could not find the end of JavaScript object "
-            f"{variable_name!r}."
+                object_text = html[
+                    start:end
+                ]
+
+                log(
+                    f"Found {variable_name}: "
+                    f"{len(object_text):,} characters"
+                )
+
+                return object_text
+
+    raise RuntimeError(
+        f"Could not find the closing brace for "
+        f"{variable_name}."
+    )
+
+
+def parse_js_string(
+    text: str,
+    position: int,
+) -> tuple[str, int]:
+    """
+    Parse a single/double quoted JavaScript string.
+
+    Returns:
+
+        (string_value, new_position)
+    """
+
+    quote = text[position]
+
+    if quote not in ("'", '"'):
+        raise ValueError(
+            "Expected JavaScript string."
         )
 
-    object_text = html[start:end]
+    position += 1
 
-    # ---------------------------------------------------------
-    # Convert JavaScript numeric property names:
-    #
-    #     { 1: 200, 2: 400 }
-    #
-    # into JSON-compatible property names:
-    #
-    #     { "1": 200, "2": 400 }
-    #
-    # Only numbers immediately followed by ':' are changed.
-    # Numbers inside strings are left untouched.
-    # ---------------------------------------------------------
+    result = []
 
-    converted = []
-    i = 0
-    in_string = False
-    string_quote = None
-    escaped = False
+    while position < len(text):
+        char = text[position]
 
-    while i < len(object_text):
-        char = object_text[i]
+        if char == quote:
+            return (
+                "".join(result),
+                position + 1,
+            )
 
-        if in_string:
-            converted.append(char)
+        if char == "\\":
+            position += 1
 
-            if escaped:
-                escaped = False
+            if position >= len(text):
+                raise ValueError(
+                    "Unterminated escape sequence."
+                )
 
-            elif char == "\\":
-                escaped = True
+            escaped = text[position]
 
-            elif char == string_quote:
-                in_string = False
-                string_quote = None
+            escapes = {
+                "n": "\n",
+                "r": "\r",
+                "t": "\t",
+                "b": "\b",
+                "f": "\f",
+                "\\": "\\",
+                "'": "'",
+                '"': '"',
+            }
 
-            i += 1
+            result.append(
+                escapes.get(
+                    escaped,
+                    escaped,
+                )
+            )
+
+            position += 1
             continue
 
-        if char in ("'", '"'):
-            # The site currently uses double-quoted country keys,
-            # but support single-quoted JavaScript strings too.
-            in_string = True
-            string_quote = char
-            converted.append(char)
-            i += 1
-            continue
+        result.append(char)
+        position += 1
 
-        # Look for an unquoted numeric JavaScript key.
-        if char.isdigit():
-            j = i
+    raise ValueError(
+        "Unterminated JavaScript string."
+    )
 
-            while (
-                j < len(object_text)
-                and object_text[j].isdigit()
-            ):
-                j += 1
 
-            number = object_text[i:j]
+def parse_courrier_zones(
+    object_text: str,
+) -> dict[str, str]:
+    """
+    Parse:
 
-            # Skip whitespace between key and colon.
-            k = j
+        {
+            "SENEGAL": "nat",
+            "BENIN": "z1",
+            ...
+        }
 
-            while (
-                k < len(object_text)
-                and object_text[k].isspace()
-            ):
-                k += 1
+    The function intentionally accepts both single and
+    double quoted keys.
+    """
 
-            if k < len(object_text) and object_text[k] == ":":
-                converted.append(f'"{number}"')
-                i = j
-                continue
+    pattern = re.compile(
+        r"""
+        (?P<quote>['"])
+        (?P<country>.*?)
+        (?P=quote)
+        \s*:\s*
+        (?P<zonequote>['"])
+        (?P<zone>.*?)
+        (?P=zonequote)
+        """,
+        re.VERBOSE,
+    )
 
-        converted.append(char)
-        i += 1
+    result = {}
 
-    object_text = "".join(converted)
+    for match in pattern.finditer(
+        object_text
+    ):
+        country = match.group("country")
+        zone = match.group("zone")
 
-    # ---------------------------------------------------------
-    # JavaScript permits single-quoted strings.
-    #
-    # The current COURRIER_ZONES object uses double quotes, so
-    # normally no conversion is necessary there.
-    #
-    # PRICING_COURRIER uses quoted zone names and numeric keys,
-    # so the numeric-key conversion above is sufficient.
-    # ---------------------------------------------------------
+        result[country] = zone
 
-    try:
-        return json.loads(object_text)
-
-    except json.JSONDecodeError as exc:
-        # Give a useful diagnostic rather than just the JSON error.
-        preview = object_text[:500]
-
+    if not result:
         raise RuntimeError(
-            f"Could not parse {variable_name} after converting "
-            f"JavaScript object syntax to JSON: {exc}\n"
-            f"Object begins with:\n{preview}"
-        ) from exc
+            "Could not extract any countries from "
+            "COURRIER_ZONES."
+        )
+
+    return result
 
 
-def get_courrier_tranche(weight_grams: int) -> int | None:
+def parse_pricing_courrier(
+    object_text: str,
+) -> dict[str, dict[str, int | None]]:
     """
-    Exact equivalent of the website's getCourrierTranche().
+    Parse the specific PRICING_COURRIER structure:
+
+        {
+            'nat': {
+                1: 200,
+                ...
+            },
+            'z1': {
+                1: 300,
+                ...
+            }
+        }
+
+    We only need the numeric weight keys and their values.
     """
+
+    result = {}
+
+    # Find each zone.
+    zone_pattern = re.compile(
+        r"""
+        (?P<quote>['"])
+        (?P<zone>nat|z1|z2|z3|z4|z5)
+        (?P=quote)
+        \s*:\s*
+        \{
+        (?P<body>.*?)
+        \}
+        """,
+        re.VERBOSE | re.DOTALL,
+    )
+
+    for zone_match in zone_pattern.finditer(
+        object_text
+    ):
+        zone = zone_match.group("zone")
+        body = zone_match.group("body")
+
+        rates = {}
+
+        rate_pattern = re.compile(
+            r"""
+            (?P<weight>\d+)
+            \s*:\s*
+            (?P<value>null|-?\d+(?:\.\d+)?)
+            """,
+            re.VERBOSE,
+        )
+
+        for rate_match in rate_pattern.finditer(
+            body
+        ):
+            weight = rate_match.group(
+                "weight"
+            )
+
+            raw_value = rate_match.group(
+                "value"
+            )
+
+            if raw_value == "null":
+                value = None
+
+            elif "." in raw_value:
+                value = float(raw_value)
+
+            else:
+                value = int(raw_value)
+
+            rates[weight] = value
+
+        result[zone] = rates
+
+    if not result:
+        raise RuntimeError(
+            "Could not extract any pricing zones "
+            "from PRICING_COURRIER."
+        )
+
+    return result
+
+
+def get_courrier_tranche(
+    weight_grams: int,
+) -> int | None:
 
     if weight_grams <= 10:
         return 1
@@ -300,7 +412,7 @@ def get_courrier_tranche(weight_grams: int) -> int | None:
 
 def get_delay(zone: str) -> str:
     """
-    Exact equivalent of the current site's courrier delay logic.
+    Exact delay logic currently used by the website.
     """
 
     if zone == "nat":
@@ -309,8 +421,15 @@ def get_delay(zone: str) -> str:
     return "5-10 jours ouvrés"
 
 
-def format_fcfa(value: int) -> str:
-    return f"{value:,}".replace(",", " ") + " FCFA"
+def format_fcfa(
+    value: int,
+) -> str:
+
+    return (
+        f"{value:,}"
+        .replace(",", " ")
+        + " FCFA"
+    )
 
 
 def calculate_country(
@@ -319,12 +438,6 @@ def calculate_country(
     pricing: dict,
     tranche: int,
 ) -> dict:
-    """
-    Calculate one country's 10 g result.
-
-    IMPORTANT:
-      None/null and 0 are deliberately treated as different statuses.
-    """
 
     if zone not in pricing:
         return {
@@ -334,16 +447,16 @@ def calculate_country(
             "tariff": None,
             "delay": None,
             "detail": (
-                f"Zone {zone!r} is not present in "
-                "PRICING_COURRIER"
+                f"Pricing zone {zone!r} "
+                "was not found."
             ),
         }
 
-    zone_rates = pricing[zone]
+    rates = pricing[zone]
 
     tranche_key = str(tranche)
 
-    if tranche_key not in zone_rates:
+    if tranche_key not in rates:
         return {
             "country": country,
             "zone": zone,
@@ -351,31 +464,31 @@ def calculate_country(
             "tariff": None,
             "delay": None,
             "detail": (
-                f"Weight tranche {tranche} is not present "
-                f"for zone {zone!r}"
+                f"Weight tranche {tranche} "
+                f"is not defined for {zone}."
             ),
         }
 
-    tariff = zone_rates[tranche_key]
+    tariff = rates[tranche_key]
 
-    # ---------------------------------------------------------
-    # IMPORTANT:
-    # The website uses null to mean that the service is not
-    # admitted/available for that zone and weight.
-    # ---------------------------------------------------------
+    # -----------------------------------------------------
+    # NULL = service unavailable.
+    # -----------------------------------------------------
+
     if tariff is None:
         return {
             "country": country,
             "zone": zone,
-            "status": "NULL",
+            "status": "UNAVAILABLE",
             "tariff": None,
             "delay": None,
-            "detail": "Service not available (tariff is null)",
+            "detail": "Tariff is null",
         }
 
-    # ---------------------------------------------------------
-    # Keep 0 FCFA separate from null.
-    # ---------------------------------------------------------
+    # -----------------------------------------------------
+    # ZERO = service exists but tariff is 0 FCFA.
+    # -----------------------------------------------------
+
     if tariff == 0:
         return {
             "country": country,
@@ -384,18 +497,6 @@ def calculate_country(
             "tariff": 0,
             "delay": get_delay(zone),
             "detail": "Tariff is 0 FCFA",
-        }
-
-    if not isinstance(tariff, int):
-        return {
-            "country": country,
-            "zone": zone,
-            "status": "ERROR",
-            "tariff": None,
-            "delay": None,
-            "detail": (
-                f"Unexpected tariff value: {tariff!r}"
-            ),
         }
 
     return {
@@ -410,35 +511,33 @@ def calculate_country(
 
 def build_output(
     results: list[dict],
-    country_count: int,
     tranche: int,
 ) -> str:
-    timestamp = datetime.now(timezone.utc).strftime(
+
+    timestamp = datetime.now(
+        timezone.utc
+    ).strftime(
         "%Y-%m-%d %H:%M:%S UTC"
     )
 
     available = [
-        result
-        for result in results
-        if result["status"] == "AVAILABLE"
+        x for x in results
+        if x["status"] == "AVAILABLE"
+    ]
+
+    unavailable = [
+        x for x in results
+        if x["status"] == "UNAVAILABLE"
     ]
 
     zero = [
-        result
-        for result in results
-        if result["status"] == "ZERO"
-    ]
-
-    null_results = [
-        result
-        for result in results
-        if result["status"] == "NULL"
+        x for x in results
+        if x["status"] == "ZERO"
     ]
 
     errors = [
-        result
-        for result in results
-        if result["status"] == "ERROR"
+        x for x in results
+        if x["status"] == "ERROR"
     ]
 
     lines = [
@@ -451,174 +550,139 @@ def build_output(
         f"Weight: {WEIGHT_GRAMS} grams",
         f"Weight tranche: {tranche}",
         "",
-        f"Countries in tariff database: {country_count}",
-        "",
         "AVAILABLE SERVICES",
         "==================",
         "",
     ]
 
-    for result in available:
+    for item in available:
         lines.append(
-            f"{result['country']} | "
-            f"{format_fcfa(result['tariff'])} | "
-            f"{result['delay']}"
+            f"{item['country']} | "
+            f"{format_fcfa(item['tariff'])} | "
+            f"{item['delay']}"
         )
 
-    lines.extend(
-        [
-            "",
-            "UNAVAILABLE / NULL TARIFF",
-            "=========================",
-            "",
-        ]
-    )
+    lines.extend([
+        "",
+        "UNAVAILABLE / NULL TARIFF",
+        "=========================",
+        "",
+    ])
 
-    if null_results:
-        for result in null_results:
+    if unavailable:
+        for item in unavailable:
             lines.append(
-                f"{result['country']} | "
+                f"{item['country']} | "
                 "SERVICE NOT AVAILABLE | "
                 "tariff = null"
             )
     else:
-        lines.append(
-            "None"
-        )
+        lines.append("None")
 
-    lines.extend(
-        [
-            "",
-            "ZERO TARIFF",
-            "===========",
-            "",
-        ]
-    )
+    lines.extend([
+        "",
+        "ZERO TARIFF",
+        "===========",
+        "",
+    ])
 
     if zero:
-        for result in zero:
+        for item in zero:
             lines.append(
-                f"{result['country']} | 0 FCFA"
+                f"{item['country']} | 0 FCFA"
             )
     else:
-        lines.append(
-            "None"
-        )
+        lines.append("None")
 
     if errors:
-        lines.extend(
-            [
-                "",
-                "ERRORS / COULD NOT VERIFY",
-                "==========================",
-                "",
-            ]
-        )
+        lines.extend([
+            "",
+            "ERRORS / COULD NOT VERIFY",
+            "==========================",
+            "",
+        ])
 
-        for result in errors:
+        for item in errors:
             lines.append(
-                f"{result['country']} | "
-                f"{result['detail']}"
+                f"{item['country']} | "
+                f"{item['detail']}"
             )
 
-    lines.extend(
-        [
-            "",
-            "SUMMARY",
-            "=======",
-            "",
-            f"Countries checked: {len(results)}",
-            f"Available: {len(available)}",
-            f"Null / unavailable: {len(null_results)}",
-            f"Zero tariff: {len(zero)}",
-            f"Errors: {len(errors)}",
-            "",
-        ]
-    )
+    lines.extend([
+        "",
+        "SUMMARY",
+        "=======",
+        "",
+        f"Countries checked: {len(results)}",
+        f"Available: {len(available)}",
+        f"Null / unavailable: {len(unavailable)}",
+        f"Zero tariff: {len(zero)}",
+        f"Errors: {len(errors)}",
+        "",
+    ])
 
     return "\n".join(lines)
 
 
-def validate_data(
-    countries: dict,
-    pricing: dict,
-) -> None:
-    if not countries:
-        raise RuntimeError(
-            "COURRIER_ZONES is empty."
-        )
-
-    if not pricing:
-        raise RuntimeError(
-            "PRICING_COURRIER is empty."
-        )
-
-    log(
-        f"Found {len(countries)} countries in "
-        "COURRIER_ZONES."
-    )
-
-    log(
-        f"Found {len(pricing)} pricing zones in "
-        "PRICING_COURRIER."
-    )
-
-    expected_zones = {
-        "nat",
-        "z1",
-        "z2",
-        "z3",
-        "z4",
-        "z5",
-    }
-
-    missing_zones = expected_zones - set(pricing)
-
-    if missing_zones:
-        raise RuntimeError(
-            "PRICING_COURRIER is missing zones: "
-            + ", ".join(sorted(missing_zones))
-        )
-
-    missing_country_zones = []
-
-    for country, zone in countries.items():
-        if zone not in pricing:
-            missing_country_zones.append(
-                f"{country} -> {zone}"
-            )
-
-    if missing_country_zones:
-        preview = ", ".join(
-            missing_country_zones[:10]
-        )
-
-        raise RuntimeError(
-            "Some countries refer to missing pricing zones: "
-            + preview
-        )
-
-
 def main() -> int:
+
     try:
         html = download_page()
 
-        log("Extracting COURRIER_ZONES...")
-        countries = extract_js_object(
+        log(
+            "Extracting COURRIER_ZONES..."
+        )
+
+        zones_text = extract_js_object(
             html,
             "COURRIER_ZONES",
         )
 
-        log("Extracting PRICING_COURRIER...")
-        pricing = extract_js_object(
+        countries = parse_courrier_zones(
+            zones_text
+        )
+
+        log(
+            f"Countries found: {len(countries)}"
+        )
+
+        log(
+            "Extracting PRICING_COURRIER..."
+        )
+
+        pricing_text = extract_js_object(
             html,
             "PRICING_COURRIER",
         )
 
-        validate_data(
-            countries,
-            pricing,
+        pricing = parse_pricing_courrier(
+            pricing_text
         )
+
+        log(
+            f"Pricing zones found: "
+            f"{len(pricing)}"
+        )
+
+        expected_zones = {
+            "nat",
+            "z1",
+            "z2",
+            "z3",
+            "z4",
+            "z5",
+        }
+
+        missing = (
+            expected_zones
+            - set(pricing.keys())
+        )
+
+        if missing:
+            raise RuntimeError(
+                "Missing pricing zones: "
+                + ", ".join(sorted(missing))
+            )
 
         tranche = get_courrier_tranche(
             WEIGHT_GRAMS
@@ -626,18 +690,19 @@ def main() -> int:
 
         if tranche is None:
             raise RuntimeError(
-                f"Weight {WEIGHT_GRAMS} g is outside "
-                "the 0-3 kg courrier range."
+                f"{WEIGHT_GRAMS} g is outside "
+                "the 0-3 kg range."
             )
 
         log(
-            f"Weight {WEIGHT_GRAMS} g uses "
-            f"tariff tranche {tranche}."
+            f"10 g uses tariff tranche "
+            f"{tranche}."
         )
 
         results = []
 
         for country, zone in countries.items():
+
             result = calculate_country(
                 country=country,
                 zone=zone,
@@ -647,117 +712,102 @@ def main() -> int:
 
             results.append(result)
 
-        # Keep the same order as the website's dictionary,
-        # which is useful for detecting meaningful changes.
-        #
-        # Do NOT silently discard null or zero results.
-
-        null_results = [
-            result
-            for result in results
-            if result["status"] == "NULL"
-        ]
-
-        zero_results = [
-            result
-            for result in results
-            if result["status"] == "ZERO"
-        ]
-
         errors = [
-            result
-            for result in results
-            if result["status"] == "ERROR"
+            x for x in results
+            if x["status"] == "ERROR"
+        ]
+
+        unavailable = [
+            x for x in results
+            if x["status"] == "UNAVAILABLE"
+        ]
+
+        zero = [
+            x for x in results
+            if x["status"] == "ZERO"
+        ]
+
+        available = [
+            x for x in results
+            if x["status"] == "AVAILABLE"
         ]
 
         log(
-            f"Countries processed: {len(results)}"
+            f"Available: {len(available)}"
         )
 
         log(
-            f"Available: "
-            f"{len(results) - len(null_results) - len(zero_results) - len(errors)}"
+            f"NULL/unavailable: "
+            f"{len(unavailable)}"
         )
 
         log(
-            f"NULL/unavailable: {len(null_results)}"
-        )
-
-        log(
-            f"Zero tariff: {len(zero_results)}"
+            f"Zero tariff: {len(zero)}"
         )
 
         log(
             f"Errors: {len(errors)}"
         )
 
-        # -----------------------------------------------------
-        # Safety checks.
-        #
-        # If the page suddenly changes and we extract only a
-        # tiny number of countries, DO NOT replace results.txt.
-        # -----------------------------------------------------
+        # Safety check.
         if len(results) < 20:
             raise RuntimeError(
-                "Too few countries were extracted "
-                f"({len(results)}). "
+                f"Only {len(results)} countries "
+                "were extracted. "
                 "Refusing to overwrite results.txt."
             )
 
-        # If any country has an ERROR, the run is incomplete.
-        # A genuine NULL is NOT an error and is intentionally
-        # included in the output.
+        # A parser problem should never result in a
+        # misleading results.txt.
         if errors:
             raise RuntimeError(
-                f"{len(errors)} country/countries could not "
-                "be calculated. Refusing to overwrite "
-                "results.txt."
+                f"{len(errors)} countries could not "
+                "be processed."
             )
 
         output = build_output(
             results=results,
-            country_count=len(countries),
             tranche=tranche,
         )
 
-        # Only write results.txt after every validation succeeds.
         OUTPUT_FILE.write_text(
             output,
             encoding="utf-8",
         )
 
         log(
-            f"Successfully wrote {OUTPUT_FILE}."
+            f"Successfully wrote "
+            f"{OUTPUT_FILE}."
         )
 
-        if null_results:
+        if unavailable:
             log(
-                "IMPORTANT: One or more countries have "
-                "a NULL tariff for 10 g."
+                "Countries with NULL tariff:"
             )
 
-            for result in null_results:
+            for item in unavailable:
                 log(
-                    f"  NULL: {result['country']}"
+                    f"  {item['country']}"
                 )
 
-        if zero_results:
+        if zero:
             log(
-                "IMPORTANT: One or more countries have "
-                "a 0 FCFA tariff for 10 g."
+                "Countries with 0 FCFA:"
             )
 
-            for result in zero_results:
+            for item in zero:
                 log(
-                    f"  ZERO: {result['country']}"
+                    f"  {item['country']}"
                 )
 
         return 0
 
     except Exception as exc:
-        log(f"FATAL ERROR: {exc}")
 
-        # Deliberately do NOT modify results.txt.
+        log(
+            f"FATAL ERROR: {exc}"
+        )
+
         return 1
 
 
