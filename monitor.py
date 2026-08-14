@@ -76,15 +76,21 @@ def extract_js_object(
     """
     Extract a JavaScript object assigned like:
 
-        const COURRIER_ZONES = {
+        const PRICING_COURRIER = {
+            'nat': { 1: 200, 2: 200, 3: 425 },
+            'z1':  { 1: 300, 2: 400, 3: 700 },
             ...
         };
 
-    The current page uses JSON-compatible syntax for these
-    particular objects, so json.loads() can parse them directly.
+    This is JavaScript object syntax, not strict JSON.
 
-    We deliberately locate the matching closing brace rather than
-    using a simple .*? regex, because nested objects are present.
+    The current Senegal La Poste page uses:
+      - quoted string keys
+      - unquoted numeric keys
+      - null values
+
+    We convert the numeric keys into JSON-compatible quoted keys
+    before parsing.
     """
 
     pattern = re.compile(
@@ -106,7 +112,6 @@ def extract_js_object(
     in_string = False
     string_quote = None
     escaped = False
-
     end = None
 
     for position in range(start, len(html)):
@@ -150,12 +155,105 @@ def extract_js_object(
 
     object_text = html[start:end]
 
+    # ---------------------------------------------------------
+    # Convert JavaScript numeric property names:
+    #
+    #     { 1: 200, 2: 400 }
+    #
+    # into JSON-compatible property names:
+    #
+    #     { "1": 200, "2": 400 }
+    #
+    # Only numbers immediately followed by ':' are changed.
+    # Numbers inside strings are left untouched.
+    # ---------------------------------------------------------
+
+    converted = []
+    i = 0
+    in_string = False
+    string_quote = None
+    escaped = False
+
+    while i < len(object_text):
+        char = object_text[i]
+
+        if in_string:
+            converted.append(char)
+
+            if escaped:
+                escaped = False
+
+            elif char == "\\":
+                escaped = True
+
+            elif char == string_quote:
+                in_string = False
+                string_quote = None
+
+            i += 1
+            continue
+
+        if char in ("'", '"'):
+            # The site currently uses double-quoted country keys,
+            # but support single-quoted JavaScript strings too.
+            in_string = True
+            string_quote = char
+            converted.append(char)
+            i += 1
+            continue
+
+        # Look for an unquoted numeric JavaScript key.
+        if char.isdigit():
+            j = i
+
+            while (
+                j < len(object_text)
+                and object_text[j].isdigit()
+            ):
+                j += 1
+
+            number = object_text[i:j]
+
+            # Skip whitespace between key and colon.
+            k = j
+
+            while (
+                k < len(object_text)
+                and object_text[k].isspace()
+            ):
+                k += 1
+
+            if k < len(object_text) and object_text[k] == ":":
+                converted.append(f'"{number}"')
+                i = j
+                continue
+
+        converted.append(char)
+        i += 1
+
+    object_text = "".join(converted)
+
+    # ---------------------------------------------------------
+    # JavaScript permits single-quoted strings.
+    #
+    # The current COURRIER_ZONES object uses double quotes, so
+    # normally no conversion is necessary there.
+    #
+    # PRICING_COURRIER uses quoted zone names and numeric keys,
+    # so the numeric-key conversion above is sufficient.
+    # ---------------------------------------------------------
+
     try:
         return json.loads(object_text)
+
     except json.JSONDecodeError as exc:
+        # Give a useful diagnostic rather than just the JSON error.
+        preview = object_text[:500]
+
         raise RuntimeError(
-            f"Could not parse {variable_name} as JSON-compatible "
-            f"JavaScript: {exc}"
+            f"Could not parse {variable_name} after converting "
+            f"JavaScript object syntax to JSON: {exc}\n"
+            f"Object begins with:\n{preview}"
         ) from exc
 
 
